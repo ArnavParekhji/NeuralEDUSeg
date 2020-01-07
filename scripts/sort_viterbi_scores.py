@@ -13,10 +13,10 @@ for file in os.listdir(args.results_dir):
     with open(os.path.join(args.results_dir, file), 'r') as f:
         file_contents = []
         for line in f:
-            file_contents.append(line)
+            file_contents.append(line.strip())
 
         scores.append(float(file_contents[-1]))
         edu_list.append(file_contents[:-1])
 
-edu_df = pd.DataFrame(data={'edus': pd.Series(edu_list), 'scores': scores})
+edu_df = pd.DataFrame.from_dict({'edus': edu_list, 'scores': scores})
 pd.to_pickle(edu_list, args.results_dir.split("/")[-1] + ".pk")
