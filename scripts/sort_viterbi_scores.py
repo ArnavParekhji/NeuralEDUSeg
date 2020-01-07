@@ -19,4 +19,4 @@ for file in os.listdir(args.results_dir):
         edu_list.append(file_contents[:-1])
 
 edu_df = pd.DataFrame(data={'edus': pd.Series(edu_list), 'scores': scores})
-pd.to_pickle(edu_list, args.results_dir.split("/")[-1])
+pd.to_pickle(edu_list, args.results_dir.split("/")[-1] + ".pk")
