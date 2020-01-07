@@ -18,5 +18,7 @@ for file in os.listdir(args.results_dir):
         scores.append(float(file_contents[-1]))
         edu_list.append(file_contents[:-1])
 
-edu_df = pd.DataFrame.from_dict({'edus': edu_list, 'scores': scores})
-pd.to_pickle(edu_list, args.results_dir.split("/")[-1] + ".pk")
+data = {'edus': edu_list, 'scores': scores}
+edu_df = pd.DataFrame.from_dict(data)
+edu_df.sort_values('scores', inplace=True).reset_index(drop=True)
+edu_df.to_pickle(args.results_dir.split("/")[-1] + ".pk")
