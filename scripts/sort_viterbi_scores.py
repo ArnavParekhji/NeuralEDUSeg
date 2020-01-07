@@ -20,5 +20,6 @@ for file in os.listdir(args.results_dir):
 
 data = {'edus': edu_list, 'scores': scores}
 edu_df = pd.DataFrame.from_dict(data)
-edu_df.sort_values('scores', inplace=True).reset_index(drop=True)
+edu_df.sort_values('scores', inplace=True)
+edu_df = edu_df.reset_index(drop=True)
 edu_df.to_pickle(args.results_dir.split("/")[-1] + ".pk")
