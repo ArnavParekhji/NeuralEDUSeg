@@ -84,7 +84,7 @@ class ELMOCRFSegModel(LSTMCRFSegModel):
             length = batch['length'][sample_idx]
             viterbi_seq, viterbi_score = tc.crf.viterbi_decode(scores[sample_idx][:length], trans_params)
 
-            with tf.Session() as session:
+            with tf.Graph().as_default(), tf.Session() as session:
                 length_tensor = tf.expand_dims(c2t(length), axis=0)
                 viterbi_seq_tensor = tf.expand_dims(c2t(viterbi_seq), axis=0)
                 scores_tensor = c2t(scores)
@@ -93,6 +93,7 @@ class ELMOCRFSegModel(LSTMCRFSegModel):
                 log_like_numpy = session.run(log_likelihood)
             log_likes.append(log_like_numpy)
 
+            tf.get_default_graph().finalize()
             pred_segs = []
             for word_idx, label in enumerate(viterbi_seq):
                 if label == 1:
