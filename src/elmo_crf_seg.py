@@ -89,7 +89,7 @@ class ELMOCRFSegModel(LSTMCRFSegModel):
             scores_tensor = c2t(scores)
             trans_params_tensor = c2t(trans_params)
             log_likelihood, tparams = tc.crf.crf_log_likelihood(scores_tensor, viterbi_seq_tensor, length_tensor, trans_params_tensor)
-            log_like_numpy = self.sess.run(log_likelihood)
+            with tf.Session() as session: log_like_numpy = session.run(log_likelihood)
             log_likes.append(log_like_numpy)
 
             pred_segs = []
