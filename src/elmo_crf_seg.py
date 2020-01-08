@@ -18,8 +18,6 @@ class ELMOCRFSegModel(LSTMCRFSegModel):
         from allennlp.commands.elmo import ElmoEmbedder
         self.elmo = ElmoEmbedder(cuda_device=0 if args.gpu is not None else -1)
 
-        self.loglike_sess = tf.Session()
-
     def _setup_placeholders(self):
         self.placeholders = {'input_words': tf.placeholder(tf.int32, shape=[None, None]),
                              'input_length': tf.placeholder(tf.int32, shape=[None]),
@@ -91,7 +89,7 @@ class ELMOCRFSegModel(LSTMCRFSegModel):
             scores_tensor = c2t(scores)
             trans_params_tensor = c2t(trans_params)
             log_likelihood, tparams = tc.crf.crf_log_likelihood(scores_tensor, viterbi_seq_tensor, length_tensor, trans_params_tensor)
-            log_like_numpy = self.loglike_sess.run(log_likelihood)
+            log_like_numpy = self.sess.run(log_likelihood)
             log_likes.append(log_like_numpy)
 
             pred_segs = []
