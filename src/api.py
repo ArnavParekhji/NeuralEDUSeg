@@ -139,43 +139,39 @@ def segment(args):
 
     spacy_nlp = spacy.load('en', disable=['parser', 'ner', 'textcat'])
     for file in args.input_files:
-        try:
-            logger.info('Segmenting {}...'.format(file))
-            raw_sents = []
-            with open(file, 'r') as fin:
-                for line in fin:
-                    line = line.strip()
-                    if line:
-                        raw_sents.append(line)
-            samples = []
-            for sent in spacy_nlp.pipe(raw_sents, batch_size=1000, n_threads=5):
-                samples.append({'words': [token.text for token in sent],
-                                'edu_seg_indices': []})
-            rst_data.test_samples = samples
-            data_batches = rst_data.gen_mini_batches(args.batch_size, test=True, shuffle=False)
+        logger.info('Segmenting {}...'.format(file))
+        raw_sents = []
+        with open(file, 'r') as fin:
+            for line in fin:
+                line = line.strip()
+                if line:
+                    raw_sents.append(line)
+        samples = []
+        for sent in spacy_nlp.pipe(raw_sents, batch_size=1000, n_threads=5):
+            samples.append({'words': [token.text for token in sent],
+                            'edu_seg_indices': []})
+        rst_data.test_samples = samples
+        data_batches = rst_data.gen_mini_batches(args.batch_size, test=True, shuffle=False)
 
-            edus = []
-            for batch in data_batches:
-                batch_pred_segs, log_likes = model.segment(batch)
-                for sample, pred_segs in zip(batch['raw_data'], batch_pred_segs):
-                    one_edu_words = []
-                    for word_idx, word in enumerate(sample['words']):
-                        if word_idx in pred_segs:
-                            edus.append(' '.join(one_edu_words))
-                            one_edu_words = []
-                        one_edu_words.append(word)
-                    if one_edu_words:
+        edus = []
+        for batch in data_batches:
+            batch_pred_segs, log_likes = model.segment(batch)
+            for sample, pred_segs in zip(batch['raw_data'], batch_pred_segs):
+                one_edu_words = []
+                for word_idx, word in enumerate(sample['words']):
+                    if word_idx in pred_segs:
                         edus.append(' '.join(one_edu_words))
+                        one_edu_words = []
+                    one_edu_words.append(word)
+                if one_edu_words:
+                    edus.append(' '.join(one_edu_words))
 
-            if not os.path.exists(args.result_dir):
-                os.makedirs(args.result_dir)
-            save_path = os.path.join(args.result_dir, os.path.basename(file))
-            logger.info('Saving into {}'.format(save_path))
-            with open(save_path, 'w') as fout:
-                for edu in edus:
-                    fout.write(edu + '\n')
-                for log_likelihood in log_likes:
-                    fout.write("{}\n".format(log_likelihood))
-        except:
-            logger.info("Crashed while segmenting {}.".format(file))
-            continue
+        if not os.path.exists(args.result_dir):
+            os.makedirs(args.result_dir)
+        save_path = os.path.join(args.result_dir, os.path.basename(file))
+        logger.info('Saving into {}'.format(save_path))
+        with open(save_path, 'w') as fout:
+            for edu in edus:
+                fout.write(edu + '\n')
+            for log_likelihood in log_likes:
+                fout.write("{}\n".format(log_likelihood))
