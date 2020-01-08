@@ -155,7 +155,7 @@ def segment(args):
 
         edus = []
         for batch in data_batches:
-            batch_pred_segs = model.segment(batch)
+            batch_pred_segs, log_likes = model.segment(batch)
             for sample, pred_segs in zip(batch['raw_data'], batch_pred_segs):
                 one_edu_words = []
                 for word_idx, word in enumerate(sample['words']):
@@ -173,3 +173,5 @@ def segment(args):
         with open(save_path, 'w') as fout:
             for edu in edus:
                 fout.write(edu + '\n')
+            for log_likelihood in log_likes:
+                fout.write("{}\n".format(log_likelihood))

@@ -5,6 +5,7 @@
 import numpy as np
 import tensorflow as tf
 import tensorflow.contrib as tc
+from tensorflow import convert_to_tensor as c2t
 from lstm_crf_seg import LSTMCRFSegModel
 
 
@@ -78,12 +79,22 @@ class ELMOCRFSegModel(LSTMCRFSegModel):
         scores, trans_params = self.sess.run([self.scores, self.trans_params], feed_dict)
 
         batch_pred_segs = []
+        log_likes = []
         for sample_idx in range(len(batch['raw_data'])):
             length = batch['length'][sample_idx]
             viterbi_seq, viterbi_score = tc.crf.viterbi_decode(scores[sample_idx][:length], trans_params)
+
+            length_tensor = tf.expand_dims(c2t(length), axis=0)
+            viterbi_seq_tensor = tf.expand_dims(c2t(viterbi_seq), axis=0)
+            scores_tensor = c2t(scores)
+            trans_params_tensor = c2t(trans_params)
+            log_likelihood, tparams = tc.crf.crf_log_likelihood(scores_tensor, viterbi_seq_tensor, length_tensor, trans_params_tensor)
+            log_like_numpy = tf.Session().run(log_likelihood)
+            log_likes.append(log_like_numpy)
+
             pred_segs = []
             for word_idx, label in enumerate(viterbi_seq):
                 if label == 1:
                     pred_segs.append(word_idx)
             batch_pred_segs.append(pred_segs)
-        return batch_pred_segs
+        return batch_pred_segs, log_likes
