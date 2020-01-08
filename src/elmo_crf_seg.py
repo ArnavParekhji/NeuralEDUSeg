@@ -84,12 +84,13 @@ class ELMOCRFSegModel(LSTMCRFSegModel):
             length = batch['length'][sample_idx]
             viterbi_seq, viterbi_score = tc.crf.viterbi_decode(scores[sample_idx][:length], trans_params)
 
-            length_tensor = tf.expand_dims(c2t(length), axis=0)
-            viterbi_seq_tensor = tf.expand_dims(c2t(viterbi_seq), axis=0)
-            scores_tensor = c2t(scores)
-            trans_params_tensor = c2t(trans_params)
-            log_likelihood, tparams = tc.crf.crf_log_likelihood(scores_tensor, viterbi_seq_tensor, length_tensor, trans_params_tensor)
-            with tf.Session() as session: log_like_numpy = session.run(log_likelihood)
+            with tf.Session() as session:
+                length_tensor = tf.expand_dims(c2t(length), axis=0)
+                viterbi_seq_tensor = tf.expand_dims(c2t(viterbi_seq), axis=0)
+                scores_tensor = c2t(scores)
+                trans_params_tensor = c2t(trans_params)
+                log_likelihood, tparams = tc.crf.crf_log_likelihood(scores_tensor, viterbi_seq_tensor, length_tensor, trans_params_tensor)
+                log_like_numpy = session.run(log_likelihood)
             log_likes.append(log_like_numpy)
 
             pred_segs = []
