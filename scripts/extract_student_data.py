@@ -19,6 +19,7 @@ utterance_series = utterance_series.map(lambda x : unicodedata.normalize('NFKD',
 utterance_series = utterance_series.map(lambda x : re.sub("[\s]+", " ", x).strip()) # Remove extra whitespace characters
 utterance_series = utterance_series[~utterance_series.str.contains("\$.*\$")] # Remove formulas
 utterance_series = utterance_series[utterance_series.map(lambda x : len(word_tokenize(x)) >= 5)] # Remove answers with less than 5 words
+utterance_series = utterance_series.reset_index(drop=True)
 
 for idx, utterance in utterance_series.iteritems():
     with open(os.path.join(args.dump_dir, "student_resp_{}.txt".format(idx)), 'w') as f:
