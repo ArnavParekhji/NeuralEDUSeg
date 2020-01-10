@@ -79,7 +79,7 @@ def segment_data(df, col_name):
     spacy_nlp = spacy.load('en', disable=['parser', 'ner', 'textcat'])
 
     edu_results = {}
-    for idx, row in tqdm(df.iterrows()):
+    for idx, row in tqdm(df.iterrows(), total=len(df.index)):
         try:
             # logger.info('Segmenting example {}...'.format(idx))
             raw_sents = [row[col_name]]
