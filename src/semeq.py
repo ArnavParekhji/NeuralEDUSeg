@@ -110,8 +110,21 @@ def segment_data(df, col_name):
             continue
 
     df['edus'] = pd.Series(edu_results)
+    return
+
+def recombine_data(prob_df, sol_df, nonsol_df):
+    """Recombine all dataframes after edu segmentation is finished."""
+    pass
 
 
+def semantic_equivalence_embeds(data_df):
+    semeq_model = SentenceTransformer('roberta-base-nli-stsb-mean-tokens')
+    data_df['semeq_embedding'] = data_df['edus'].map(semeq_model.encode)
+    return
+
+
+def cosine_sims(data_df):
+    pass
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -121,4 +134,5 @@ if __name__ == "__main__":
 
     prob_df, sol_df, nonsol_df = preprocess_data(args)
     segment_data(sol_df, 'reference_solutions')
-    
+    segment_data(nonsol_df, 'reference_nonsolutions')
+
