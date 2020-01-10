@@ -92,7 +92,7 @@ def segment_data(df, col_name):
 
             edus = []
             for batch in data_batches:
-                batch_pred_segs, log_likes = model.segment(batch)
+                batch_pred_segs = model.segment(batch)
                 for sample, pred_segs in zip(batch['raw_data'], batch_pred_segs):
                     one_edu_words = []
                     for word_idx, word in enumerate(sample['words']):
