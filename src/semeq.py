@@ -30,11 +30,10 @@ def preprocess_data(args):
     # Problem texts are in singleton lists, map them into strings
     assert not (ref_df['problem_texts'].str.len() > 1).any()
     ref_df['problem_texts'] = ref_df['problem_texts'].map(lambda x : x[0])
-    prob_df = ref_df[['exercise_index', 'problem_texts']]
 
     # Explode the reference solutions and nonsolutions
-    sol_df = ref_df[['exercise_index', 'reference_solutions']].explode('reference_solutions').reset_index(drop=True)
-    nonsol_df = ref_df[['exercise_index', 'reference_nonsolutions']].explode('reference_nonsolutions').dropna().reset_index(drop=True)
+    sol_df = ref_df[['exercise_index', 'problem_texts', 'reference_solutions']].explode('reference_solutions').reset_index(drop=True)
+    nonsol_df = ref_df[['exercise_index', 'problem_texts', 'reference_nonsolutions']].explode('reference_nonsolutions').dropna().reset_index(drop=True)
 
     # Remove equations
     sol_df = sol_df[~sol_df.reference_solutions.str.contains("\$.*\$")].reset_index(drop=True)
@@ -44,10 +43,10 @@ def preprocess_data(args):
     sol_df = sol_df[sol_df.reference_solutions.apply(lambda x : len(word_tokenize(x))) >= 5].reset_index(drop=True)
     nonsol_df = nonsol_df[nonsol_df.reference_nonsolutions.apply(lambda x : len(word_tokenize(x))) >= 5].reset_index(drop=True)
 
-    return prob_df, sol_df, nonsol_df
+    return sol_df, nonsol_df
 
 
-def segment_data(df, col_name):
+def segment_data(dfs, col_names):
     """Segment the given dataframes into EDUs, add the EDUs into the dataframes and return"""
     args = parse_args()
     np.random.seed(args.seed)
@@ -78,39 +77,41 @@ def segment_data(df, col_name):
 
     spacy_nlp = spacy.load('en', disable=['parser', 'ner', 'textcat'])
 
-    edu_results = {}
-    for idx, row in tqdm(df.iterrows(), total=len(df.index)):
-        try:
-            # logger.info('Segmenting example {}...'.format(idx))
-            raw_sents = [row[col_name]]
-            samples = []
-            for sent in spacy_nlp.pipe(raw_sents, batch_size=1000, n_threads=5):
-                samples.append({'words': [token.text for token in sent],
-                                'edu_seg_indices': []})
-            rst_data.test_samples = samples
-            data_batches = rst_data.gen_mini_batches(args.batch_size, test=True, shuffle=False)
+    for df, col_name in zip(dfs, col_names):
+        edu_results = {}
+        for idx, row in tqdm(df.iterrows(), total=len(df.index)):
+            try:
+                # logger.info('Segmenting example {}...'.format(idx))
+                raw_sents = [row[col_name]]
+                samples = []
+                for sent in spacy_nlp.pipe(raw_sents, batch_size=1000, n_threads=5):
+                    samples.append({'words': [token.text for token in sent],
+                                    'edu_seg_indices': []})
+                rst_data.test_samples = samples
+                data_batches = rst_data.gen_mini_batches(args.batch_size, test=True, shuffle=False)
 
-            edus = []
-            for batch in data_batches:
-                batch_pred_segs = model.segment(batch)
-                for sample, pred_segs in zip(batch['raw_data'], batch_pred_segs):
-                    one_edu_words = []
-                    for word_idx, word in enumerate(sample['words']):
-                        if word_idx in pred_segs:
+                edus = []
+                for batch in data_batches:
+                    batch_pred_segs = model.segment(batch)
+                    for sample, pred_segs in zip(batch['raw_data'], batch_pred_segs):
+                        one_edu_words = []
+                        for word_idx, word in enumerate(sample['words']):
+                            if word_idx in pred_segs:
+                                edus.append(' '.join(one_edu_words))
+                                one_edu_words = []
+                            one_edu_words.append(word)
+                        if one_edu_words:
                             edus.append(' '.join(one_edu_words))
-                            one_edu_words = []
-                        one_edu_words.append(word)
-                    if one_edu_words:
-                        edus.append(' '.join(one_edu_words))
 
-            edu_results[idx] = edus
-        except:
-            logger.info("Crashed while segmenting {}.".format(idx))
-            edu_results[idx] = []
-            continue
+                edu_results[idx] = edus
+            except:
+                logger.info("Crashed while segmenting {}.".format(idx))
+                edu_results[idx] = []
+                continue
 
-    df['edus'] = pd.Series(edu_results)
-    return
+        df['edus'] = pd.Series(edu_results)
+    merged = pd.concat(dfs)
+    return merged
 
 
 def semantic_equivalence_embeds(data_df):
@@ -124,7 +125,8 @@ if __name__ == "__main__":
                         default='../data/rst/korbit_full/preprocessed_reference_exercise_data.tsv')
     args = parser.parse_args()
 
-    prob_df, sol_df, nonsol_df = preprocess_data(args)
-    segment_data(sol_df, 'reference_solutions')
-    segment_data(nonsol_df, 'reference_nonsolutions')
+    sol_df, nonsol_df = preprocess_data(args)
+    edu_df = segment_data([sol_df, nonsol_df], ['reference_solutions', 'reference_nonsolutions'])
+    semantic_equivalence_embeds(edu_df)
+    
 
