@@ -82,7 +82,7 @@ def segment_data(df, col_name):
     for idx, row in tqdm(df.iterrows()):
         try:
             # logger.info('Segmenting example {}...'.format(idx))
-            raw_sents = row[col_name]
+            raw_sents = [row[col_name]]
             samples = []
             for sent in spacy_nlp.pipe(raw_sents, batch_size=1000, n_threads=5):
                 samples.append({'words': [token.text for token in sent],
@@ -112,19 +112,11 @@ def segment_data(df, col_name):
     df['edus'] = pd.Series(edu_results)
     return
 
-def recombine_data(prob_df, sol_df, nonsol_df):
-    """Recombine all dataframes after edu segmentation is finished."""
-    pass
-
 
 def semantic_equivalence_embeds(data_df):
     semeq_model = SentenceTransformer('roberta-base-nli-stsb-mean-tokens')
     data_df['semeq_embedding'] = data_df['edus'].map(semeq_model.encode)
     return
-
-
-def cosine_sims(data_df):
-    pass
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
