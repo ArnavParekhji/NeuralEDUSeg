@@ -126,6 +126,7 @@ def segment_data(dfs, col_names):
 
         df['edus'] = pd.Series(edu_results)
     merged = pd.concat(dfs).reset_index(drop=True)
+    merged = merged[merged['edus'].map(lambda x: len(x)) > 0]  # Remove rows with unsegmentable EDUs
     return merged
 
 
@@ -140,7 +141,7 @@ if __name__ == "__main__":
                         default='../data/rst/korbit_full/preprocessed_reference_exercise_data.tsv')
     parser.add_argument('--std_data_file', type=str, default='../data/rst/student_data/student_exercise_dataset.tsv')
     parser.add_argument('--dataset', type=str, default='student', help='student or ref')
-    args = parser.parse_args()
+    args = parser.parse_args()  # This is broken. It will only work for default args bc of the parse_args function in config.py
 
     if args.dataset == 'ref':
         sol_df, nonsol_df = preprocess_ref_data(args)
