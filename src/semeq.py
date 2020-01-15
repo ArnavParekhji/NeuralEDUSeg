@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-import os
-import ast
+import unicodedata
+import ast, re
 import argparse
 from tqdm import tqdm
 
@@ -18,10 +18,10 @@ from sklearn.metrics.pairwise import cosine_similarity as cos_sim
 from sentence_transformers import SentenceTransformer
 
 
-def preprocess_data(args):
+def preprocess_ref_data(args):
     # Load reference data into DataFrame
     ref_df = pd.read_csv(args.ref_data_file, sep='\t')
-    ref_df = ref_df.drop(columns='Unnamed: 0')  # Redundant column
+    ref_df.drop(columns='Unnamed: 0', inplace=True)  # Redundant column
 
     # Clean up data: transform strings to lists, remove equations, less than 5 words, fix whitespaces
     for col in ['problem_texts', 'reference_solutions', 'reference_nonsolutions']:
@@ -44,6 +44,21 @@ def preprocess_data(args):
     nonsol_df = nonsol_df[nonsol_df.reference_nonsolutions.apply(lambda x : len(word_tokenize(x))) >= 5].reset_index(drop=True)
 
     return sol_df, nonsol_df
+
+
+def preprocess_std_data(args):
+    std_df = pd.read_csv(args.std_data_file, sep='\t')
+    drop_cols = ['Unnamed: 0', 'user_id', 'course_id', 'multiple_choice_question', 'exercise_shown_time', 'total_time_spent', 'list_of_user_utterances_probs']
+    std_df.drop(columns=drop_cols, inplace=True)
+    std_df['list_of_user_utterances'] = std_df['list_of_user_utterances'].map(ast.literal_eval) # Problem texts are literal strings, map them into lists of strings
+    std_df = std_df.explode('list_of_user_utterances').dropna().reset_index(drop=True) # Explode the student's attempts into individual answers
+    std_df = std_df[~std_df.list_of_user_utterances.str.contains("\$.*\$")].reset_index(drop=True)  # Remove equations
+    std_df = std_df[std_df.list_of_user_utterances.apply(lambda x : len(word_tokenize(x))) >= 5].reset_index(drop=True)
+
+    std_df.rename(columns={'list_of_user_utterances': 'std_response'}, inplace=True)
+    std_df['std_response'] = std_df['std_response'].map(lambda x : unicodedata.normalize('NFKD', x))  # Remove bad encodings
+    std_df['std_response'] = std_df['std_response'].map(lambda x : re.sub("[\s]+", " ", x).strip())  # Remove extra spaces
+    return std_df
 
 
 def segment_data(dfs, col_names):
@@ -110,7 +125,7 @@ def segment_data(dfs, col_names):
                 continue
 
         df['edus'] = pd.Series(edu_results)
-    merged = pd.concat(dfs)
+    merged = pd.concat(dfs).reset_index(drop=True)
     return merged
 
 
@@ -123,10 +138,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--ref_data_file', type=str,
                         default='../data/rst/korbit_full/preprocessed_reference_exercise_data.tsv')
+    parser.add_argument('--std_data_file', type=str, default='../data/rst/student_data/student_exercise_dataset.tsv')
+    parser.add_argument('--dataset', type=str, default='student', help='student or ref')
     args = parser.parse_args()
 
-    sol_df, nonsol_df = preprocess_data(args)
-    edu_df = segment_data([sol_df, nonsol_df], ['reference_solutions', 'reference_nonsolutions'])
-    semantic_equivalence_embeds(edu_df)
-    
-
+    if args.dataset == 'ref':
+        sol_df, nonsol_df = preprocess_ref_data(args)
+        edu_df = segment_data([sol_df, nonsol_df], ['reference_solutions', 'reference_nonsolutions'])
+        semantic_equivalence_embeds(edu_df)
+        pd.to_pickle(edu_df, "ref_encoded_edus.pk")
+    elif args.dataset == 'student':
+        std_df = preprocess_std_data(args)
+        edu_df = segment_data([std_df], ['std_response'])
+        semantic_equivalence_embeds(edu_df)
+        pd.to_pickle(edu_df, "std_encoded_edus.pk")
+    else:
+        raise ValueError("Invalid dataset choice: {}".format(args.dataset))
