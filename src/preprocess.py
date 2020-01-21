@@ -12,6 +12,9 @@ import logging
 logger = logging.getLogger('SegEDU')
 spacy_nlp = None
 
+def remove_commas(doc):
+    return spacy_nlp.make_doc(" ".join([token.text for token in doc if token.text != ","]))
+
 
 def preprocess_one_doc(sent_file, edu_file):
     raw_sents = []
@@ -30,7 +33,7 @@ def preprocess_one_doc(sent_file, edu_file):
     global spacy_nlp
     if not spacy_nlp:
         spacy_nlp = spacy.load('en', disable=['parser', 'ner', 'textcat'])
-
+        spacy_nlp.add_pipe(remove_commas, first=True)
     sents = []
     for sent in spacy_nlp.pipe(raw_sents, batch_size=1000, n_threads=5):
         sents.append({'raw_text': sent.text,

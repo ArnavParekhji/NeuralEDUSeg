@@ -8,7 +8,7 @@ import random
 import pickle
 import logging
 import spacy
-from preprocess import preprocess_rst_data
+from preprocess import preprocess_rst_data, remove_commas
 from vocab import Vocab
 from rst_edu_reader import RSTData
 from atten_seg import AttnSegModel
@@ -138,6 +138,7 @@ def segment(args):
         model.sess.run(model.ema_assign_op)
 
     spacy_nlp = spacy.load('en', disable=['parser', 'ner', 'textcat'])
+    spacy_nlp.add_pipe(remove_commas, first=True)
     for file in args.input_files:
         logger.info('Segmenting {}...'.format(file))
         raw_sents = []
