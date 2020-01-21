@@ -58,7 +58,7 @@ class ELMOCRFSegModel(LSTMCRFSegModel):
                          self.placeholders['input_length']: batch['length'],
                          self.placeholders['seg_labels']: batch['seg_labels']}
             elmo_vectors, mask = self.elmo.batch_to_embeddings([sample['words'] for sample in batch['raw_data']])
-            feed_dict[self.placeholders['elmo_vectors']] = np.asarray(elmo_vectors.data)
+            feed_dict[self.placeholders['elmo_vectors']] = np.asarray(elmo_vectors.cpu().data)
             feed_dict[self.placeholders['dropout_keep_prob']] = self.dropout_keep_prob
 
             _, loss, grad_norm = self.sess.run([self.train_op, self.loss, self.grad_norm], feed_dict)
