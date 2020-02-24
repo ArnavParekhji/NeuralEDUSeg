@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import unicodedata
-import ast, re
+import ast, re, os
 import argparse
 from tqdm import tqdm
 
@@ -59,6 +59,11 @@ def preprocess_std_data(args):
     std_df['std_response'] = std_df['std_response'].map(lambda x : unicodedata.normalize('NFKD', x))  # Remove bad encodings
     std_df['std_response'] = std_df['std_response'].map(lambda x : re.sub("[\s]+", " ", x).strip())  # Remove extra spaces
     return std_df
+
+
+def preprocess_pdtb_data(args):
+    raw_df = pd.read_json(os.path.join(args.pdtb_json_dir, "{}_raw.json".format(args.pdtb_dataset)), typ='series')
+    return raw_df.to_frame(name='pdtb_text')
 
 
 def segment_data(dfs, col_names):
@@ -136,12 +141,7 @@ def semantic_equivalence_embeds(data_df):
     return
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--ref_data_file', type=str,
-                        default='../data/rst/korbit_full/preprocessed_reference_exercise_data.tsv')
-    parser.add_argument('--std_data_file', type=str, default='../data/rst/student_data/student_exercise_dataset.tsv')
-    parser.add_argument('--dataset', type=str, default='student', help='student or ref')
-    args = parser.parse_args()  # This is broken. It will only work for default args bc of the parse_args function in config.py
+    args = parse_args()
 
     if args.dataset == 'ref':
         sol_df, nonsol_df = preprocess_ref_data(args)
@@ -153,5 +153,9 @@ if __name__ == "__main__":
         edu_df = segment_data([std_df], ['std_response'])
         semantic_equivalence_embeds(edu_df)
         pd.to_pickle(edu_df, "std_encoded_edus.pk")
+    elif args.dataset == 'pdtb':
+        pdtb_df = preprocess_pdtb_data(args)
+        edu_df = segment_data([pdtb_df], ['pdtb_text'])
+        pd.to_pickle(pdtb_df, "pdtb_edus.pk")
     else:
         raise ValueError("Invalid dataset choice: {}".format(args.dataset))
