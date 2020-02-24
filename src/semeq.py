@@ -156,6 +156,6 @@ if __name__ == "__main__":
     elif args.dataset == 'pdtb':
         pdtb_df = preprocess_pdtb_data(args)
         edu_df = segment_data([pdtb_df], ['pdtb_text'])
-        pd.to_pickle(pdtb_df, "pdtb_edus.pk")
+        pd.to_pickle(pdtb_df, "{}_edus.pk".format(args.pdtb_dataset))
     else:
         raise ValueError("Invalid dataset choice: {}".format(args.dataset))
