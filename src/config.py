@@ -67,7 +67,7 @@ def parse_args():
     parser.add_argument('--ref_data_file', type=str,
                         default='../data/rst/korbit_full/preprocessed_reference_exercise_data.tsv')
     parser.add_argument('--std_data_file', type=str, default='../data/rst/student_data/student_exercise_dataset.tsv')
-    parser.add_argument('--pdtb_json_dir', type=str, default='../data/rst/pdtb')
+    parser.add_argument('--pdtb_json_dir', type=str, default='../data/pdtb')
     parser.add_argument('--dataset', type=str, default='student', help='student or ref')
     parser.add_argument('--pdtb_dataset', type=str, default='train')
 
