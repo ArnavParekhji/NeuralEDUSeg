@@ -106,6 +106,7 @@ def segment_data(dfs, col_names):
                 samples = []
                 for sent in spacy_nlp.pipe(raw_sents, batch_size=1000, n_threads=5):
                     samples.append({'words': [token.text for token in sent],
+                                    'words_ws': [token.text_with_ws for token in sent],
                                     'edu_seg_indices': []})
                 rst_data.test_samples = samples
                 data_batches = rst_data.gen_mini_batches(args.batch_size, test=True, shuffle=False)
@@ -115,13 +116,13 @@ def segment_data(dfs, col_names):
                     batch_pred_segs = model.segment(batch)
                     for sample, pred_segs in zip(batch['raw_data'], batch_pred_segs):
                         one_edu_words = []
-                        for word_idx, word in enumerate(sample['words']):
+                        for word_idx, word in enumerate(sample['words_ws']):
                             if word_idx in pred_segs:
-                                edus.append(' '.join(one_edu_words))
+                                edus.append(''.join(one_edu_words))
                                 one_edu_words = []
                             one_edu_words.append(word)
                         if one_edu_words:
-                            edus.append(' '.join(one_edu_words))
+                            edus.append(''.join(one_edu_words))
 
                 edu_results[idx] = edus
             except:
