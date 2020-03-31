@@ -8,7 +8,7 @@ from rnn import rnn
 from elmo_crf_seg import ELMOCRFSegModel
 from layers import self_attention
 import pickle
-from config import parse_args
+from seg_config import parse_args
 
 class AttnSegModel(ELMOCRFSegModel):
     @classmethod
