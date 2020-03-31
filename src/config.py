@@ -12,7 +12,7 @@ def parse_args():
     parser.add_argument('--train', action='store_true', help='train the segmentation model')
     parser.add_argument('--evaluate', action='store_true', help='evaluate the model')
     parser.add_argument('--segment', action='store_true', help='segment new files or input text')
-    parser.add_argument('--gpu', type=str, default='0', help='specify gpu device')
+    parser.add_argument('--gpu', type=str, default='-1', help='specify gpu device')
 
     train_settings = parser.add_argument_group('train settings')
     train_settings.add_argument('--optim', default='adam', help='optimizer type')
@@ -62,6 +62,10 @@ def parse_args():
     path_settings.add_argument('--result_dir', default='../data/results',
                                help='the directory to save edu segmentation results')
     path_settings.add_argument('--log_path', help='the file to output log')
+
+    path_settings.add_argument('--base_weights_path', type=str, default='../../../shared/google_drive_files/')
+    path_settings.add_argument('--weights_file', type=str, default='elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5')
+    path_settings.add_argument('--options_file', type=str, default='elmo_2x4096_512_2048cnn_2xhighway_options.json')
 
     # Matts
     parser.add_argument('--ref_data_file', type=str,
