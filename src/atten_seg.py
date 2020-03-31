@@ -8,11 +8,11 @@ from rnn import rnn
 from elmo_crf_seg import ELMOCRFSegModel
 from layers import self_attention
 import pickle
+from config import parse_args
 
 class AttnSegModel(ELMOCRFSegModel):
     @classmethod
     def from_default(cls):
-        from config import parse_args
         args = parse_args()
         with open(args.word_vocab_path, 'rb') as fin:
             word_vocab = pickle.load(fin)
