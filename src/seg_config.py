@@ -53,9 +53,9 @@ def parse_args():
                                help='list of files that contain the instances to evaluate')
     path_settings.add_argument('--input_files', nargs='+',
                                help='list of files that contain the instances to segment')
-    path_settings.add_argument('--word_embed_path', default='../data/embeddings/glove.840B.300d.txt',
+    path_settings.add_argument('--word_embed_path', default='NeuralEDUSeg/data/embeddings/glove.840B.300d.txt',
                                help='the path of the pre-trained word embeddings')
-    path_settings.add_argument('--word_vocab_path', default='../data/vocab/word.vocab',
+    path_settings.add_argument('--word_vocab_path', default='NeuralEDUSeg/data/vocab/word.vocab',
                                help='the path to save vocabulary of words')
     path_settings.add_argument('--model_dir', default='../data/models/',
                                help='the dir to save the model')
