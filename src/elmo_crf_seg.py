@@ -7,6 +7,7 @@ import tensorflow as tf
 import tensorflow.contrib as tc
 from tensorflow import convert_to_tensor as c2t
 from lstm_crf_seg import LSTMCRFSegModel
+import os
 
 
 class ELMOCRFSegModel(LSTMCRFSegModel):
@@ -16,7 +17,13 @@ class ELMOCRFSegModel(LSTMCRFSegModel):
 
         # import ElmoEmbedder here so that the cuda_visible_divices can work
         from allennlp.commands.elmo import ElmoEmbedder
-        self.elmo = ElmoEmbedder(cuda_device=int(args.gpu))
+
+        if os.path.exists(os.path.join(args.base_weights_path, args.weights_file)):
+            weights_file = os.path.join(args.base_weights_path, args.weights_file)
+            options_file = os.path.join(args.base_weights_path, args.options_file)
+            self.elmo = ElmoEmbedder(options_file=options_file, weights_file=weights_file, cuda_device=int(args.gpu))
+        else:
+            self.elmo = ElmoEmbedder(cuda_device=int(args.gpu))
 
     def _setup_placeholders(self):
         self.placeholders = {'input_words': tf.placeholder(tf.int32, shape=[None, None]),
