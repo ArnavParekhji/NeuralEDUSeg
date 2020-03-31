@@ -10,7 +10,7 @@ import logging
 import spacy
 from rst_edu_reader import RSTData
 from atten_seg import AttnSegModel
-from config import parse_args
+from seg_config import parse_args
 
 from nltk import word_tokenize
 import tensorflow as tf

@@ -8,7 +8,7 @@ import logging
 import random
 import numpy as np
 import tensorflow as tf
-from config import parse_args
+from seg_config import parse_args
 from api import prepare, train, evaluate, segment
 
 
