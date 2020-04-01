@@ -23,6 +23,7 @@ class ELMOCRFSegModel(LSTMCRFSegModel):
             options_file = os.path.join(args.base_weights_path, args.options_file)
             self.elmo = ElmoEmbedder(options_file=options_file, weights_file=weights_file, cuda_device=int(args.gpu))
         else:
+            print("Elmo vectors NOT found at designated path. Downloading from online...")
             self.elmo = ElmoEmbedder(cuda_device=int(args.gpu))
 
     def _setup_placeholders(self):
