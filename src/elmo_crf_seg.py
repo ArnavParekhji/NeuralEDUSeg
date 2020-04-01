@@ -21,7 +21,7 @@ class ELMOCRFSegModel(LSTMCRFSegModel):
         if os.path.exists(os.path.join(args.base_data_dir, args.elmo_dir, args.weights_file)):
             weights_file = os.path.join(args.base_data_dir, args.elmo_dir, args.weights_file)
             options_file = os.path.join(args.base_data_dir, args.elmo_dir, args.options_file)
-            self.elmo = ElmoEmbedder(options_file=options_file, weights_file=weights_file, cuda_device=int(args.gpu))
+            self.elmo = ElmoEmbedder(options_file=options_file, weight_file=weights_file, cuda_device=int(args.gpu))
         else:
             print("Elmo vectors NOT found at designated path. Downloading from online...")
             self.elmo = ElmoEmbedder(cuda_device=int(args.gpu))
