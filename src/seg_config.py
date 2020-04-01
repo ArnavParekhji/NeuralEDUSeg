@@ -63,7 +63,8 @@ def parse_args(parent_args = None):
                                help='the directory to save edu segmentation results')
     path_settings.add_argument('--log_path', help='the file to output log')
 
-    path_settings.add_argument('--base_weights_path', type=str, default='../../../shared/google_drive_files/')
+    path_settings.add_argument('--base_data_dir', type=str, default='../../../shared/google_drive_files/')
+    path_settings.add_argument('--elmo_dir', type=str, default='BERT_models/elmo')
     path_settings.add_argument('--weights_file', type=str, default='elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5')
     path_settings.add_argument('--options_file', type=str, default='elmo_2x4096_512_2048cnn_2xhighway_options.json')
 

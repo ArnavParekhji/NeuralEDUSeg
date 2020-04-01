@@ -18,9 +18,9 @@ class ELMOCRFSegModel(LSTMCRFSegModel):
         # import ElmoEmbedder here so that the cuda_visible_divices can work
         from allennlp.commands.elmo import ElmoEmbedder
 
-        if os.path.exists(os.path.join(args.base_weights_path, args.weights_file)):
-            weights_file = os.path.join(args.base_weights_path, args.weights_file)
-            options_file = os.path.join(args.base_weights_path, args.options_file)
+        if os.path.exists(os.path.join(args.base_weights_path, args.elmo_dir, args.weights_file)):
+            weights_file = os.path.join(args.base_weights_path, args.elmo_dir, args.weights_file)
+            options_file = os.path.join(args.base_weights_path, args.elmo_dir, args.options_file)
             self.elmo = ElmoEmbedder(options_file=options_file, weights_file=weights_file, cuda_device=int(args.gpu))
         else:
             print("Elmo vectors NOT found at designated path. Downloading from online...")
