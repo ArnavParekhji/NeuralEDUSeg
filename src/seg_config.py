@@ -75,5 +75,5 @@ def parse_args():
     parser.add_argument('--dataset', type=str, default='student', help='student or ref')
     parser.add_argument('--pdtb_dataset', type=str, default='train')
 
-
-    return parser.parse_args()
+    args, unknown = parser.parse_known_args()
+    return args
