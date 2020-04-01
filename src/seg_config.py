@@ -5,7 +5,7 @@
 import argparse
 
 
-def parse_args():
+def parse_args(parent_args = None):
     parser = argparse.ArgumentParser('EDU segmentation toolkit 1.0')
     parser.add_argument('--prepare', action='store_true',
                         help='preprocess the RST-DT data and create the vocabulary')
@@ -74,6 +74,9 @@ def parse_args():
     parser.add_argument('--pdtb_json_dir', type=str, default='../data/pdtb')
     parser.add_argument('--dataset', type=str, default='student', help='student or ref')
     parser.add_argument('--pdtb_dataset', type=str, default='train')
+
+    if parent_args:
+        parser.set_defaults(**vars(parent_args))
 
     args, unknown = parser.parse_known_args()
     return args
