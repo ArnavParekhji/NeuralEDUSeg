@@ -12,7 +12,7 @@ from preprocess import preprocess_rst_data
 from vocab import Vocab
 from rst_edu_reader import RSTData
 from atten_seg import AttnSegModel
-
+import streamlit as st
 
 def prepare(args):
     logger = logging.getLogger('SegEDU')
@@ -139,18 +139,24 @@ def segment(args):
 
     spacy_nlp = spacy.load('en', disable=['parser', 'ner', 'textcat'])
     spacy_nlp.add_pipe(lambda doc : spacy_nlp.make_doc(" ".join([token.text for token in doc if token.text != ","])), first=True)
-    for file in args.input_files:
-        logger.info('Segmenting {}...'.format(file))
+    for f in args.input_files:
+        # f = "../data/rst/TRAINING/wsj_1103.out"
+        logger.info('Segmenting {}...'.format(f))
         raw_sents = []
-        with open(file, 'r') as fin:
+        with open(f, 'r') as fin:
             for line in fin:
                 line = line.strip()
                 if line:
                     raw_sents.append(line)
         samples = []
+        tttt = ""
+        myslot = st.empty()
         for sent in spacy_nlp.pipe(raw_sents, batch_size=1000, n_threads=5):
             samples.append({'words': [token.text for token in sent],
                             'edu_seg_indices': []})
+            tttt += str(sent) + "\n"
+        myslot.text(tttt)
+        sub = ""
         rst_data.test_samples = samples
         data_batches = rst_data.gen_mini_batches(args.batch_size, test=True, shuffle=False)
 
@@ -158,6 +164,17 @@ def segment(args):
         for batch in data_batches:
             batch_pred_segs = model.segment(batch)
             for sample, pred_segs in zip(batch['raw_data'], batch_pred_segs):
+                rep = sample["words"]
+                indexes = pred_segs
+                start_idx = 0
+                for i in range(len(indexes)+1):
+                  if i==len(indexes):
+                    end_idx = len(rep)
+                  else:
+                    end_idx = indexes[i]
+                  sub += "[" + str(rep[start_idx:end_idx]) + "]" + str(i) + " "
+                  start_idx = end_idx
+                sub += "\n"
                 one_edu_words = []
                 for word_idx, word in enumerate(sample['words']):
                     if word_idx in pred_segs:
@@ -167,9 +184,10 @@ def segment(args):
                 if one_edu_words:
                     edus.append(' '.join(one_edu_words))
 
+        myslot.text(sub)
         if not os.path.exists(args.result_dir):
             os.makedirs(args.result_dir)
-        save_path = os.path.join(args.result_dir, os.path.basename(file))
+        save_path = os.path.join(args.result_dir, os.path.basename(f))
         logger.info('Saving into {}'.format(save_path))
         with open(save_path, 'w') as fout:
             for edu in edus:
